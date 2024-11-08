@@ -17,8 +17,77 @@ Fridays class demo - they were looking at Sheffield weather trends.
 
 Data is available from this link: https://www.metoffice.gov.uk/pub/data/weather/uk/climate/stationdata/sheffielddata.txt
 
+The URL for these pages is:
+https://amelia-taylor1.github.io/animated_plots/
+
+The repository for these pages is:
+https://github.com/amelia-taylor1/animated_plots.git
+
 ## Import data
+```{r}
+
+loc = "https://www.metoffice.gov.uk/pub/data/weather/uk/climate/stationdata/sheffielddata.txt"
+
+# split values by 'tabs' whenever large white space between values using "\t"
+# 7 lines of descriptive text at the start of the df which means not easy to import
+# so data is there but not structure correctly
+# so need to skip first 7 lines
+
+# df <- read.csv(loc, sep = "\t", skip = 7)
+# the above approach doesn't work
+
+dat <- readLines(loc)
+
+# change the word 'provisional' to nothing, replace in every instance
+# then do the same for removing * and #
+
+dat <-  gsub("Provisional", "", dat)
+dat <-  gsub("\\*", "", dat)
+dat <-  gsub("\\#", "", dat)
+
+# save new file w/o the above stuff in it
+
+writeLines(dat, "cleaned.txt")
+
+# import data file
+df <- read.table("cleaned.txt", skip = 7, # skip first 7 lines of text
+                 fill = TRUE) # fills blanks
+
+```
 
 ## Wrangle data
+```{r wrangle}
 
-## 
+# give columns names
+cols <- c("year", "month", "max_t", "min_t", "af", "rain", "sun")
+
+# assign the columns names in the df file
+colnames(df) <- cols
+```
+
+
+## Visualise the data
+```{r plot}
+
+# p <- ggplot(df, aes(x = month, y = max_t))
+
+# p + geom_line()
+# creates the below messy graph 
+# plot tries to draw lines for every october for every year (a lot)
+
+# need to convert max_t to numeric values
+
+df$max_t <- as.numeric(df$max_t) # use as.numeric function to convert column values to number
+
+# create plot
+
+# this below lines creates a canvas
+p <- ggplot(df, aes(x = month, y = max_t, group = year, colour = year))
+
+# this line puts ink on the canvas
+# alpha effects transparency of lines
+p + geom_line(alpha = 0.1) +
+  geom_line(data = df %>% filter(year == 2024), colour = "purple", linewidth = 2)
+
+```
+
